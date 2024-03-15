@@ -1,5 +1,6 @@
 package com.yustar.bezierpathapp
 
+import android.app.Activity
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,10 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.yustar.bezierpathapp.ui.theme.BezierPathAppTheme
 
-class MainActivity : ComponentActivity() {
+class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
+        setContentView(R.layout.activity_main)
+        /*setContent {
             BezierPathAppTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
@@ -25,7 +27,7 @@ class MainActivity : ComponentActivity() {
                     Greeting("Android")
                 }
             }
-        }
+        }*/
     }
 }
 
