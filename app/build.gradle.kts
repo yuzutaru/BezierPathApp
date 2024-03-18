@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.yustar.virtulrouteapp"
+    namespace = "com.yustar.virtualrouteapp"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.yustar.virtulrouteapp"
+        applicationId = "com.yustar.virtualrouteapp"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

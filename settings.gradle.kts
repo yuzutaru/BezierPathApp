@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "BezierPathApp"
+rootProject.name = "VirtualRouteApp"
 include(":app")

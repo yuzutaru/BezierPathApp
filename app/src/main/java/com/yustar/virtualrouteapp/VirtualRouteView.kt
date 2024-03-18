@@ -8,13 +8,11 @@ import android.graphics.DashPathEffect
 import android.graphics.Paint
 import android.graphics.Path
 import android.util.AttributeSet
+import android.util.DisplayMetrics
+import android.util.Log
 import android.util.TypedValue
 import android.view.View
 
-
-/**
- * Created by Yustar Pramudana on 14/03/24.
- */
 
 class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, attrs) {
 
@@ -22,6 +20,8 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
     private var road: Paint = Paint()
     private var roadLine: Paint = Paint()
     private var path: Path = Path()
+    private var canvas: Canvas? = null
+    private var selectedOption = ScrollDirection.vertical
 
     private var horizontalControlPoint = arrayListOf(
         CGPoint(x= 20, y= 150),
@@ -66,8 +66,13 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
 
     private var participantProgress = arrayListOf(1000, 2000, 3000, 4000, 7000, 10000, 5500, 11000,
         12000, 10000)
+    private var maxX = 0f
+    private var maxY = 0f
+    private var startX = 0f
+    private var startY = 0f
+    private var endX = 0f
+    private var endY =0f
 
-    @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
@@ -86,10 +91,36 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
          */
         initRoadLine(4f, Color.GRAY)
 
+        val points = if (selectedOption == ScrollDirection.horizontal)
+            horizontalControlPoint
+        else
+            verticalControlPoint
+
+        /**
+         * Calculate Scroll
+         */
+        points.forEach { cgPoint ->
+            if (cgPoint == points[0]) {
+                endX = cgPoint.x.toFloat()
+                endY = cgPoint.y.toFloat()
+            } else if (cgPoint == points[points.size - 1]) {
+                startX = cgPoint.x.toFloat()
+                startY = cgPoint.y.toFloat()
+            }
+
+            if (cgPoint.x > maxX) {
+                maxX = cgPoint.x.toFloat()
+            }
+            if (cgPoint.y > maxY) {
+                maxY = cgPoint.y.toFloat()
+            }
+        }
+        maxX += 100
+        maxY += 100
+
         /**
          * Draw Path
          */
-
         var startPoint = CGPoint(0, 0)
         var endPoint = CGPoint(0,0)
         var startAnchor = CGPoint(0, 0)
@@ -110,20 +141,32 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
             }
         }*/
 
-        verticalControlPoint.forEachIndexed { i, controlPoints ->
-            if (i == 0 && i + 1 < verticalControlPoint.size) {
-                startPoint = CGPoint(controlPoints.x, controlPoints.y - 5)
-                endPoint = verticalControlPoint[i + 1]
-            } else if (i == verticalControlPoint.size - 2) {
+        points.forEachIndexed { i, controlPoints ->
+            if (i == 0 && i + 1 < points.size) {
+                if (selectedOption == ScrollDirection.horizontal) {
+                    startPoint = CGPoint(controlPoints.x - 5, controlPoints.y)
+                    endPoint = controlPoints
+                } else {
+                    startPoint = CGPoint(controlPoints.x, controlPoints.y - 5)
+                    endPoint = points[i + 1]
+                }
+            } else if (i == points.size - 2 && i + 1 < points.size) {
+                if (selectedOption == ScrollDirection.horizontal) {
+                    startPoint = controlPoints
+                    endPoint = CGPoint(points[i + 1].x + 5, points[i + 1].y)
+                } else {
+                    startPoint = controlPoints
+                    endPoint = CGPoint(points[i + 1].x, points[i + 1].y + 5)
+                }
+            } else if (i + 1 < points.size) {
                 startPoint = controlPoints
-                endPoint = CGPoint(verticalControlPoint[i + 1].x, verticalControlPoint[i + 1].y + 5)
-            } else if (i + 1 < verticalControlPoint.size) {
-                startPoint = controlPoints
-                endPoint = verticalControlPoint[i + 1]
+                endPoint = points[i + 1]
             }
 
             drawLine(canvas, startPoint, endPoint)
         }
+
+        this.canvas = canvas
     }
 
     private fun initBorder(size: Float, color: Int) {
@@ -203,5 +246,17 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
         canvas.drawPath(path, border)
         canvas.drawPath(path, road)
         canvas.drawPath(path, roadLine)
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        val displayMetrics = context.resources.displayMetrics
+
+        canvas?.height?.let {
+            Log.e("devLog", "canvasHeigt = ${Math.round(it.toFloat() / (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT))}")
+            Log.e("devLog", "measuredHeight = ${Math.round(heightMeasureSpec.toFloat() / (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT))}")
+            if (it > measuredHeight)
+                setMeasuredDimension(measuredWidth, measuredHeight*2)
+        }
     }
 }
