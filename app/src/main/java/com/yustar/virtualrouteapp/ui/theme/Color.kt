@@ -1,4 +1,4 @@
-package com.yustar.bezierpathapp.ui.theme
+package com.yustar.virtualrouteapp.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

@@ -1,4 +1,4 @@
-package com.yustar.bezierpathapp
+package com.yustar.virtualrouteapp
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

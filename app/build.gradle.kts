@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.yustar.bezierpathapp"
+    namespace = "com.yustar.virtulrouteapp"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.yustar.bezierpathapp"
+        applicationId = "com.yustar.virtulrouteapp"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

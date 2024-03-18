@@ -1,4 +1,4 @@
-package com.yustar.bezierpathapp
+package com.yustar.virtualrouteapp
 
 import org.junit.Test
 
