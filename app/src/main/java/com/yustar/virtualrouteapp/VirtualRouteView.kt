@@ -20,7 +20,7 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
     private var road: Paint = Paint()
     private var roadLine: Paint = Paint()
     private var path: Path = Path()
-    private var selectedOption = ScrollDirection.vertical
+    private var selectedOption = ScrollDirection.horizontal
 
     private var horizontalControlPoint = arrayListOf(
         CGPoint(x= 20, y= 150),
@@ -65,8 +65,6 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
 
     private var participantProgress = arrayListOf(1000, 2000, 3000, 4000, 7000, 10000, 5500, 11000,
         12000, 10000)
-    private var maxX = 0f
-    private var maxY = 0f
     private var startX = 0f
     private var startY = 0f
     private var endX = 0f
@@ -95,11 +93,6 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
             horizontalControlPoint
         else
             verticalControlPoint
-
-        /**
-         * Calculate Scroll
-         */
-        addSize(this, points)
 
         /**
          * Draw Path
@@ -131,28 +124,6 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
 
             drawLine(canvas, startPoint, endPoint)
         }
-    }
-
-    private fun addSize(view: View, points: ArrayList<CGPoint>) {
-        isVerticalScrollBarEnabled = true
-        points.forEach { cgPoint ->
-            if (cgPoint == points[0]) {
-                endX = cgPoint.x.toFloat()
-                endY = cgPoint.y.toFloat()
-            } else if (cgPoint == points[points.size - 1]) {
-                startX = cgPoint.x.toFloat()
-                startY = cgPoint.y.toFloat()
-            }
-
-            if (cgPoint.x > maxX) {
-                maxX = cgPoint.x.toFloat()
-            }
-            if (cgPoint.y > maxY) {
-                maxY = cgPoint.y.toFloat()
-            }
-        }
-        maxX += 100
-        maxY += 100
     }
 
     private fun initBorder(size: Float, color: Int) {
@@ -235,22 +206,20 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        Log.e("devLog", "widthMeasureSpec = $widthMeasureSpec")
-        Log.e("devLog", "heightMeasureSpec = $heightMeasureSpec")
-        Log.e("devLog", "maxX = $maxX")
-        Log.e("devLog", "maxY = $maxY")
         when (selectedOption) {
             ScrollDirection.horizontal -> {
                 setMeasuredDimension(widthMeasureSpec +
                         TypedValue.applyDimension(
-                            TypedValue.COMPLEX_UNIT_DIP, 1000f,
+                            TypedValue.COMPLEX_UNIT_DIP,
+                            (horizontalControlPoint[horizontalControlPoint.size - 1].x).toFloat(),
                             context.resources.displayMetrics
                         ).toInt(),
                     heightMeasureSpec)
             }
             ScrollDirection.vertical -> {
                 setMeasuredDimension(widthMeasureSpec, heightMeasureSpec +
-                        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1000f,
+                        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                            (verticalControlPoint[verticalControlPoint.size - 1].y).toFloat(),
                             context.resources.displayMetrics).toInt())
             }
         }
