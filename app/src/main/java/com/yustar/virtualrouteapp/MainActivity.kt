@@ -2,6 +2,7 @@ package com.yustar.virtualrouteapp
 
 import android.app.Activity
 import android.os.Bundle
+import android.view.MotionEvent
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -24,6 +25,11 @@ class MainActivity : Activity() {
                 }
             }
         }*/
+    }
+
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        return super.onTouchEvent(event)
+
     }
 }
 

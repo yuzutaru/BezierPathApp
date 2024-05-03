@@ -1,6 +1,7 @@
 [versions]
 agp = "8.3.0"
 appcompat = "1.6.1"
+cardview = "1.0.0"
 kotlin = "1.9.0"
 coreKtx = "1.12.0"
 junit = "4.13.2"
@@ -13,6 +14,7 @@ composeBom = "2023.08.00"
 [libraries]
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 androidx-appcompat-resources = { module = "androidx.appcompat:appcompat-resources", version.ref = "appcompat" }
+androidx-cardview = { module = "androidx.cardview:cardview", version.ref = "cardview" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
