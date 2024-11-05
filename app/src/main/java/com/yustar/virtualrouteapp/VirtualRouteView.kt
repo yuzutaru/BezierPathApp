@@ -8,6 +8,7 @@ import android.graphics.Color
 import android.graphics.DashPathEffect
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.util.Log
 import android.util.TypedValue
@@ -70,10 +71,14 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
     )
 
     private var milestonePoints = arrayListOf(2500, 5000, 7500)
-    private var participantProgress = arrayListOf(1000, 2000, 3000, 4000, 7000, 10000, 5500, 11000,
-        12000, 10000)
+    private var participantProgress = arrayListOf(0, 1000, 5000, 9000, 10000)
     private var userCoordinates = arrayListOf<CGPoint>()
     private var totalStepsGoal = 10000
+
+    private val frameDrawable: Drawable = ContextCompat.getDrawable(context, R.drawable.ic_virtual_route_vertical_bg)!!
+
+    private var maxX = 0
+    private var maxY = 0
 
     private var originalX = 0f
     private var originalY = 0f
@@ -121,6 +126,8 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
          */
         initRoadLine(Color.GRAY)
 
+        initialSetup(verticalControlPoint)
+
         /**
          * Set Background
          */
@@ -133,6 +140,9 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
             horizontalControlPoint
         else
             verticalControlPoint
+
+        // Draw the drawable as the background
+        frameDrawable.draw(canvas)
 
         /**
          * Draw Virtual Route
@@ -188,46 +198,43 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
         roadLine.isAntiAlias = true
     }
 
+    private fun initialSetup(controlPoints: ArrayList<CGPoint>) {
+        var endX = 0
+        var endY = 0
+        for (point in controlPoints) {
+            if (point == controlPoints[0]) {
+                endX = point.x
+                endY = point.y
+            }
+            if (point.x > maxX)
+                maxX = point.x
+            if (point.y > maxY)
+                maxY = point.y
+        }
+
+        maxX += 100
+        maxY += 100
+    }
+
     private fun setBackground() {
         if (selectedOption == ScrollDirection.horizontal)
             this.background = context.getDrawable(R.drawable.ic_virtual_route_horizontal_bg)
-        else
-            this.background = context.getDrawable(R.drawable.ic_virtual_route_vertical_bg)
-    }
-
-    private fun drawPath(canvas: Canvas, xStart: Float, yStart: Float, xEnd: Float, yEnd: Float,
-                         xStartAnchor: Float, yStartAnchor: Float,
-                         xEndAnchor: Float, yEndAnchor: Float) {
-        path.moveTo(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, xStart,
-            context.resources.displayMetrics),
-            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, yStart,
-                context.resources.displayMetrics))
-        path.cubicTo(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, xStartAnchor,
-            context.resources.displayMetrics),
-            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, yStartAnchor,
-                context.resources.displayMetrics),
-            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, xEndAnchor,
-                context.resources.displayMetrics),
-            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, yEndAnchor,
-                context.resources.displayMetrics),
-            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, xEnd,
-                context.resources.displayMetrics),
-            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, yEnd,
-                context.resources.displayMetrics))
-        canvas.drawPath(path, border)
-        canvas.drawPath(path, road)
-        canvas.drawPath(path, roadLine)
+        else {
+            //this.background = context.getDrawable(R.drawable.ic_virtual_route_vertical_bg)
+            // Set the bounds for the drawable to match the view size
+            frameDrawable.setBounds(0, 0, TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, maxX.toFloat(),
+                context.resources.displayMetrics).toInt(), TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, maxY.toFloat(),
+                context.resources.displayMetrics).toInt())
+        }
     }
 
     private fun drawLine(canvas: Canvas, startPoint: CGPoint, endPoint: CGPoint) {
         path.moveTo(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, startPoint.x.toFloat(),
-            context.resources.displayMetrics),
-            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, startPoint.y.toFloat(),
-                context.resources.displayMetrics))
+            context.resources.displayMetrics), TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, startPoint.y.toFloat(),
+            context.resources.displayMetrics))
 
         path.lineTo(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, endPoint.x.toFloat(),
-            context.resources.displayMetrics),
-            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, endPoint.y.toFloat(),
+            context.resources.displayMetrics), TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, endPoint.y.toFloat(),
             context.resources.displayMetrics))
 
         canvas.drawPath(path, border)
@@ -276,7 +283,7 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
     }
 
     private fun stepsCoveredToT(stepsCovered: Int, totalSteps: Int): Double {
-        return (stepsCovered / totalSteps).toDouble()
+        return (stepsCovered.toDouble() / totalSteps.toDouble())
     }
 
     // Function to calculate points on straight lines between control points
@@ -287,10 +294,10 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
         val numSegments = controlPoints.size - 1
 
         // Calculate the segment index
-        val segmentIndex = (t * numSegments).toInt()
+        val segmentIndex = (t * numSegments.toFloat()).toInt()
 
         // Calculate t within the segment
-        val segmentT = (t * numSegments) - segmentIndex
+        val segmentT = (t * numSegments.toFloat()) - segmentIndex
 
         // Ensure the segment index is valid
         //guard segmentIndex >= 0 && segmentIndex < numSegments else { return nil }
@@ -321,55 +328,21 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
     }
 
     private fun addUserOnMap(canvas: Canvas, userPosition: CGPoint, userImage: String) {
-        val x = userPosition.x
-        val y = userPosition.y
+        val x = userPosition.x.toFloat()
+        val y = userPosition.y.toFloat()
 
         val drawableImg = ContextCompat.getDrawable(context, userImage.toInt())
-        val bitmapImg = BitmapFactory.decodeResource(resources, R.drawable.ic_virtual_route_pin)
 
         drawableImg?.let {
-            it.setBounds((TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, x.toFloat(),
-                context.resources.displayMetrics) / 2).toInt(),
-                (TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, y.toFloat(),
-                    context.resources.displayMetrics) / 2).toInt(),
-                (TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (it.intrinsicWidth + x).toFloat(),
-                    context.resources.displayMetrics) /2 ).toInt(),
-                (TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (it.intrinsicHeight + y).toFloat(),
-                    context.resources.displayMetrics) / 2).toInt())
-            /*it.setBounds(
-                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 40f,
-                context.resources.displayMetrics).toInt(),
-                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 40f,
-                context.resources.displayMetrics).toInt(),
-                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, it.intrinsicWidth.toFloat(),
-                    context.resources.displayMetrics).toInt(),
-                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, it.intrinsicHeight.toFloat(),
-                    context.resources.displayMetrics).toInt()
-            )*/
+            //it.setBounds(x.toInt(), y.toInt(), (it.intrinsicWidth + x).toInt(), (it.intrinsicHeight + y).toInt())
+            it.setBounds(
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (x - 40f), context.resources.displayMetrics).toInt(),
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (y - 80f), context.resources.displayMetrics).toInt(),
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (x + 40f), context.resources.displayMetrics).toInt(),
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (y), context.resources.displayMetrics).toInt()
+            )
             it.draw(canvas)
         }
-
-        /*val imageSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 40f,
-            context.resources.displayMetrics)
-        val imageView = ImageView(context)
-        imageView.setImageDrawable(drawableImg)
-        imageView.layoutParams = LinearLayout.LayoutParams(imageSize.toInt(), imageSize.toInt())
-        imageView.x = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, x - imageSize / 2,
-            context.resources.displayMetrics)
-        imageView.y = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, y - imageSize / 2,
-            context.resources.displayMetrics)
-        imageView.clipToOutline = true*/
-
-        val imageSize = 40f
-        val imageView = ImageView(context)
-        imageView.setImageDrawable(drawableImg)
-        imageView.layoutParams = LinearLayout.LayoutParams(imageSize.toInt(), imageSize.toInt())
-        imageView.x = x - imageSize / 2
-        imageView.y = y - imageSize / 2
-        imageView.clipToOutline = true
-
-        /*val paint = Paint()
-        canvas.drawBitmap(bitmapImg, 0f, 0f, paint)*/
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -380,7 +353,7 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
         Log.e("devLog", "oldh = $oldh")
     }
 
-    /*override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         Log.e("devLog", "widthMeasureSpec = $widthMeasureSpec")
         Log.e("devLog", "heightMeasureSpec = $heightMeasureSpec")
@@ -389,20 +362,20 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
             ScrollDirection.horizontal -> {
                 setMeasuredDimension(widthMeasureSpec +
                         horizontalControlPoint[horizontalControlPoint.size - 1].x
-                        *//*TypedValue.applyDimension(
+                        /*TypedValue.applyDimension(
                             TypedValue.COMPLEX_UNIT_DIP,
                             (horizontalControlPoint[horizontalControlPoint.size - 1].x).toFloat(),
                             context.resources.displayMetrics
-                        ).toInt()*//*,
+                        ).toInt()*/,
                     heightMeasureSpec)
             }
             ScrollDirection.vertical -> {
                 setMeasuredDimension(widthMeasureSpec, heightMeasureSpec +
                         verticalControlPoint[verticalControlPoint.size - 1].y
-                        *//*TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                        /*TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
                             (verticalControlPoint[verticalControlPoint.size - 1].y).toFloat(),
-                            context.resources.displayMetrics).toInt()*//*)
+                            context.resources.displayMetrics).toInt()*/)
             }
         }
-    }*/
+    }
 }
