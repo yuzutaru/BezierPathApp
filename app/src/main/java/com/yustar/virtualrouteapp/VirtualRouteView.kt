@@ -21,7 +21,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.GestureDetectorCompat
 
 
-class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, attrs) {
+@SuppressLint("ViewConstructor")
+class VirtualRouteView(
+    context: Context, attrs: AttributeSet,
+    private val roadColor: Int = Color.GRAY, private val roadBorderColor: Int = Color.BLACK
+): View(context, attrs) {
 
     private var border: Paint = Paint()
     private var road: Paint = Paint()
@@ -30,44 +34,44 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
     private var selectedOption = ScrollDirection.vertical
 
     private var horizontalControlPoint = arrayListOf(
-        CGPoint(x= 20, y= 150),
-        CGPoint(x= 20, y= 150),
-        CGPoint(x= 150, y= 150),
-        CGPoint(x= 150, y= 250),
-        CGPoint(x= 350, y= 250),
-        CGPoint(x= 350, y= 50),
-        CGPoint(x= 500, y= 50),
-        CGPoint(x= 500, y= 150),
-        CGPoint(x= 600, y= 150)
+        CGPoint(x = 20, y = 0),
+        CGPoint(x = 20, y = 0),
+        CGPoint(x = 150, y = 0),
+        CGPoint(x = 150, y = 250),
+        CGPoint(x = 350, y = 250),
+        CGPoint(x = 350, y = 50),
+        CGPoint(x = 500, y = 50),
+        CGPoint(x = 500, y = 150),
+        CGPoint(x = 600, y = 150)
     )
 
     private var verticalControlPoint = arrayListOf(
-        CGPoint(x= 300, y= 50), //0
-        CGPoint(x= 300, y= 50),
-        CGPoint(x= 300, y= 150),
-        CGPoint(x= 250, y= 150),
-        CGPoint(x= 250, y= 300), //4
-        CGPoint(x= 150, y= 300),
-        CGPoint(x= 150, y= 200),
-        CGPoint(x= 50, y= 200),
-        CGPoint(x= 50, y= 400),  //8
-        CGPoint(x= 300, y= 400),
-        CGPoint(x= 300, y= 600),
-        CGPoint(x= 100, y= 600),
-        CGPoint(x= 100, y= 670),  //12
-        CGPoint(x= 330, y= 670),
-        CGPoint(x= 330, y= 750),
-        CGPoint(x= 250, y= 750),
-        CGPoint(x= 250, y= 850),  //16
-        CGPoint(x= 100, y= 850),
-        CGPoint(x= 100, y= 1000),
-        CGPoint(x= 250, y= 1000),
-        CGPoint(x= 250, y= 950),  //20
-        CGPoint(x= 320, y= 950),
-        CGPoint(x= 320, y= 1100),
-        CGPoint(x= 100, y= 1100),
-        CGPoint(x= 100, y= 1200),  //24
-        CGPoint(x= 100, y= 1200)
+        CGPoint(x = 280, y = 80),
+        CGPoint(x = 280, y = 80),
+        CGPoint(x = 280, y = 150),
+        CGPoint(x = 230, y = 150),
+        CGPoint(x = 230, y = 300),
+        CGPoint(x = 120, y = 300),
+        CGPoint(x = 120, y = 200),
+        CGPoint(x = 50, y = 200),
+        CGPoint(x = 50, y = 420),
+        CGPoint(x = 260, y = 420),
+        CGPoint(x = 260, y = 740),
+        CGPoint(x = 110, y = 740),
+        CGPoint(x = 110, y = 825),
+        CGPoint(x = 320, y = 825),
+        CGPoint(x = 320, y = 920),
+        CGPoint(x = 200, y = 920),
+        CGPoint(x = 200, y = 1010),
+        CGPoint(x = 100, y = 1010),
+        CGPoint(x = 100, y = 1120),
+        CGPoint(x = 200, y = 1120),
+        CGPoint(x = 200, y = 1090),
+        CGPoint(x = 335, y = 1090),
+        CGPoint(x = 335, y = 1180),
+        CGPoint(x = 100, y = 1180),
+        CGPoint(x = 100, y = 1250),
+        CGPoint(x = 100, y = 1250)
     )
 
     private var milestonePoints = arrayListOf(2500, 5000, 7500)
@@ -114,17 +118,17 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
         /**
          * Border
          */
-        initBorder(Color.RED)
+        initBorder()
 
         /**
          * Road
          */
-        initRoad(Color.BLUE)
+        initRoad()
 
         /**
          * White Line
          */
-        initRoadLine(Color.GRAY)
+        initRoadLine()
 
         initialSetup(verticalControlPoint)
 
@@ -152,32 +156,42 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
         /**
          * Add user Position
          */
-        addUserPositions(canvas = canvas, participantProgress = participantProgress,
-            controlPoints = points)
+        addUserPositions(
+            canvas = canvas, participantProgress = participantProgress,
+            controlPoints = points, userImage = R.drawable.ic_virtual_route_pin.toString()
+        )
+
+        /**
+         * Add Milestone Position
+         */
+        addUserPositions(
+            canvas = canvas, participantProgress = milestonePoints,
+            controlPoints = points, userImage = R.drawable.ic_virtual_route_pin.toString()
+        )
 
         /*Log.e("devLog", "canvas.width = ${canvas.width}")
         Log.e("devLog", "canvas.height = ${canvas.height}")*/
     }
 
-    private fun initBorder(color: Int) {
+    private fun initBorder() {
         border.style = Paint.Style.STROKE
-        border.color = color
+        border.color = roadBorderColor
         border.strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 44f,
             context.resources.displayMetrics)
         border.strokeCap = Paint.Cap.ROUND
         border.isAntiAlias = true
     }
 
-    private fun initRoad(color: Int) {
+    private fun initRoad() {
         road.style = Paint.Style.STROKE
-        road.color = Color.BLUE
+        road.color = roadColor
         road.strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 40f,
             context.resources.displayMetrics)
         road.strokeCap = Paint.Cap.ROUND
         road.isAntiAlias = true
     }
 
-    private fun initRoadLine(color: Int) {
+    private fun initRoadLine() {
         roadLine.style = Paint.Style.STROKE
         roadLine.setPathEffect(
             DashPathEffect(
@@ -191,7 +205,7 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
                     context.resources.displayMetrics)
             )
         )
-        roadLine.color = color
+        roadLine.color = Color.GRAY
         roadLine.strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4f,
             context.resources.displayMetrics)
         roadLine.strokeCap = Paint.Cap.ROUND
@@ -222,9 +236,11 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
         else {
             //this.background = context.getDrawable(R.drawable.ic_virtual_route_vertical_bg)
             // Set the bounds for the drawable to match the view size
-            frameDrawable.setBounds(0, 0, TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, maxX.toFloat(),
-                context.resources.displayMetrics).toInt(), TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, maxY.toFloat(),
-                context.resources.displayMetrics).toInt())
+            frameDrawable.setBounds(
+                0, 0,
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, maxX.toFloat(), context.resources.displayMetrics).toInt(),
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, maxY.toFloat(), context.resources.displayMetrics).toInt()
+            )
         }
     }
 
@@ -272,13 +288,16 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
         }
     }
 
-    private fun addUserPositions(canvas: Canvas, participantProgress: ArrayList<Int>, controlPoints: ArrayList<CGPoint>) {
+    private fun addUserPositions(
+        canvas: Canvas, participantProgress: ArrayList<Int>, controlPoints: ArrayList<CGPoint>,
+        userImage: String
+    ) {
         userCoordinates.clear()
         participantProgress.forEach {
             val t = stepsCoveredToT(stepsCovered = it, totalSteps = totalStepsGoal)
             val point = pointsOnStraightLines(controlPoints = controlPoints, t = t.toFloat())
             userCoordinates.add(point)
-            addUserOnMap(canvas = canvas, userPosition = point, userImage = R.drawable.ic_virtual_route_pin.toString())
+            addUserOnMap(canvas = canvas, userPosition = point, userImage = userImage)
         }
     }
 
