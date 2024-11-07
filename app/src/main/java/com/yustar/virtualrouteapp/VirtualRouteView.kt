@@ -38,6 +38,14 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
         textAlign = Paint.Align.CENTER
     }
 
+    private val userProgressPaint = Paint().apply {
+        color = ContextCompat.getColor(context, R.color.white)
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 12f, context.resources.displayMetrics)  // Set your desired text size
+
+        isAntiAlias = true
+        textAlign = Paint.Align.CENTER
+    }
+
     private var selectedOption = ScrollDirection.vertical
 
     private var horizontalControlPoint = arrayListOf(
@@ -317,7 +325,6 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
         val drawableImg = ContextCompat.getDrawable(context, userImage.toInt())
 
         drawableImg?.let {
-            //it.setBounds(x.toInt(), y.toInt(), (it.intrinsicWidth + x).toInt(), (it.intrinsicHeight + y).toInt())
             it.setBounds(
                 TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (x - 20f), context.resources.displayMetrics).toInt(),
                 TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (y - 15f), context.resources.displayMetrics).toInt(),
@@ -327,17 +334,18 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
             it.draw(canvas)
 
             // Create a Path for the triangle
-            setTriangle(canvas)
+            setTriangle(x, y, canvas)
 
             // Define the rectangle dimensions
-            setRoundedRect(canvas)
+            setRoundedRect(x, y, canvas)
 
             // Calculate the position for the text to be centered in the rectangle
-            setUserName(canvas)
+            setUserName(x, y, canvas)
+            setUserProgress(x, y, canvas)
         }
     }
 
-    private fun setTriangle(canvas: Canvas) {
+    private fun setTriangle(x: Float, y: Float, canvas: Canvas) {
         val path = Path().apply {
             moveTo(
                 TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (x - 15f), context.resources.displayMetrics),
@@ -358,7 +366,7 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
         canvas.drawPath(path, rectPaint)
     }
 
-    private fun setRoundedRect(canvas: Canvas) {
+    private fun setRoundedRect(x: Float, y: Float, canvas: Canvas) {
         val cornerRadius = 6f
 
         canvas.drawRoundRect(
@@ -370,7 +378,7 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
         )
     }
 
-    private fun setUserName(canvas: Canvas) {
+    private fun setUserName(x: Float, y: Float, canvas: Canvas) {
         var text = "Rewardz"
         val maxLength = 14
         val textX = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, x - 4, context.resources.displayMetrics)  // Center horizontally
@@ -381,6 +389,19 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
 
         // Draw the text inside the rectangle
         canvas.drawText(text, textX, textY, userNamePaint)
+    }
+
+    private fun setUserProgress(x: Float, y: Float, canvas: Canvas) {
+        var text = "50 Km"
+        val maxLength = 14
+        val textX = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, x - 4, context.resources.displayMetrics)  // Center horizontally
+        val textY = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, y - 38f, context.resources.displayMetrics)  // Center vertically
+
+        if (text.length > maxLength)
+            text = text.substring(0, maxLength - 3) + "..."; // Add ellipsis
+
+        // Draw the text inside the rectangle
+        canvas.drawText(text, textX, textY, userProgressPaint)
     }
 
     private fun addMilestonePositions(canvas: Canvas, participantProgress: ArrayList<Int>, controlPoints: ArrayList<CGPoint>, userImg: String) {
