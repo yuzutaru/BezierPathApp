@@ -7,13 +7,16 @@ import android.graphics.Color
 import android.graphics.DashPathEffect
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.Typeface
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.util.AttributeSet
 import android.util.Log
 import android.util.TypedValue
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
 import android.view.View
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.view.GestureDetectorCompat
 
@@ -30,20 +33,28 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
         isAntiAlias = true
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    var regularSf: Typeface = resources.getFont(R.font.sf_pro_text_regular)
+    @RequiresApi(Build.VERSION_CODES.O)
     private val userNamePaint = Paint().apply {
         color = ContextCompat.getColor(context, R.color.white_71)
         textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 12f, context.resources.displayMetrics)  // Set your desired text size
 
         isAntiAlias = true
         textAlign = Paint.Align.CENTER
+        typeface = regularSf
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    var mediumSf: Typeface = resources.getFont(R.font.sf_pro_text_medium)
+    @RequiresApi(Build.VERSION_CODES.O)
     private val userProgressPaint = Paint().apply {
         color = ContextCompat.getColor(context, R.color.white)
         textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 12f, context.resources.displayMetrics)  // Set your desired text size
 
         isAntiAlias = true
         textAlign = Paint.Align.CENTER
+        typeface = mediumSf
     }
 
     private var selectedOption = ScrollDirection.vertical
