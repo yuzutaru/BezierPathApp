@@ -2,7 +2,6 @@ package com.yustar.virtualrouteapp
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.DashPathEffect
@@ -15,8 +14,6 @@ import android.util.TypedValue
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
 import android.view.View
-import android.widget.ImageView
-import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.GestureDetectorCompat
 
@@ -27,6 +24,12 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
     private var road: Paint = Paint()
     private var roadLine: Paint = Paint()
     private var path: Path = Path()
+    private val rectPaint = Paint().apply {
+        color = Color.BLACK
+        style = Paint.Style.FILL
+        isAntiAlias = true
+    }
+
     private var selectedOption = ScrollDirection.vertical
 
     private var horizontalControlPoint = arrayListOf(
@@ -151,15 +154,15 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
         drawVirtualRoute(canvas, points)
 
         /**
-         * Add user Position
+         * Add milestone Position
          */
-        addUserPositions(canvas = canvas, participantProgress = participantProgress,
+        addMilestonePositions(canvas = canvas, participantProgress = participantProgress,
             controlPoints = points, userImg = R.drawable.ic_virtual_route_pin.toString())
 
         /**
-         * Add Milestone Position
+         * Add user Position
          */
-        addMilestonePositions(canvas = canvas, participantProgress = milestonePoints,
+        addUserPositions(canvas = canvas, participantProgress = milestonePoints,
             controlPoints = points, userImg = R.drawable.mock_ic_rewardz_user_pin.toString())
 
         /*Log.e("devLog", "canvas.width = ${canvas.width}")
@@ -281,7 +284,7 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
         }
     }
 
-    private fun addUserOnMap(canvas: Canvas, userPosition: CGPoint, userImage: String) {
+    private fun addMilestoneOnMap(canvas: Canvas, userPosition: CGPoint, userImage: String) {
         val x = userPosition.x.toFloat()
         val y = userPosition.y.toFloat()
 
@@ -299,7 +302,7 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
         }
     }
 
-    private fun addMilestoneOnMap(canvas: Canvas, userPosition: CGPoint, userImage: String) {
+    private fun addUserOnMap(canvas: Canvas, userPosition: CGPoint, userImage: String) {
         val x = userPosition.x.toFloat()
         val y = userPosition.y.toFloat()
 
@@ -314,26 +317,66 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
                 TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (y + 15), context.resources.displayMetrics).toInt()
             )
             it.draw(canvas)
+
+            // Define the triangle points
+            val width = width.toFloat()
+            val height = height.toFloat()
+
+            // Calculate the three points of the triangle with the tip at the bottom
+            val point1 = Pair(width * 0.25f, height * 0.25f)   // Top-left point
+            val point2 = Pair(width * 0.75f, height * 0.25f)   // Top-right point
+            val point3 = Pair(width / 2, height * 0.75f)       // Bottom tip point (centered horizontally)
+
+            // Create a Path for the triangle
+            val path = Path().apply {
+                moveTo(
+                    TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (x - 15f), context.resources.displayMetrics),
+                    TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (y - 30f), context.resources.displayMetrics)
+                )  // Move to the top-left point
+                lineTo(
+                    TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, x + 5f, context.resources.displayMetrics),
+                    TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, y - 30f, context.resources.displayMetrics)
+                )  // Draw line to the top-right
+                lineTo(
+                    TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, x - 5, context.resources.displayMetrics),
+                    TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, y - 20f, context.resources.displayMetrics)
+                )  // Draw line to the bottom tip
+                close()  // Close the path to form the triangle
+            }
+
+            // Draw the triangle
+            canvas.drawPath(path, rectPaint)
+
+            // Define the rectangle dimensions
+            val cornerRadius = 6f
+
+            canvas.drawRoundRect(
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (x - 50f), context.resources.displayMetrics),
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (y - 70f), context.resources.displayMetrics),
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (x + 40f), context.resources.displayMetrics),
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (y - 30f), context.resources.displayMetrics),
+                cornerRadius, cornerRadius, rectPaint
+            )
         }
     }
 
-    private fun addUserPositions(canvas: Canvas, participantProgress: ArrayList<Int>, controlPoints: ArrayList<CGPoint>, userImg: String) {
+    private fun addMilestonePositions(canvas: Canvas, participantProgress: ArrayList<Int>, controlPoints: ArrayList<CGPoint>, userImg: String) {
         userCoordinates.clear()
         participantProgress.forEach {
             val t = stepsCoveredToT(stepsCovered = it, totalSteps = totalStepsGoal)
             val point = pointsOnStraightLines(controlPoints = controlPoints, t = t.toFloat())
             userCoordinates.add(point)
-            addUserOnMap(canvas = canvas, userPosition = point, userImage = userImg)
+            addMilestoneOnMap(canvas = canvas, userPosition = point, userImage = userImg)
         }
     }
 
-    private fun addMilestonePositions(canvas: Canvas, participantProgress: ArrayList<Int>, controlPoints: ArrayList<CGPoint>, userImg: String) {
+    private fun addUserPositions(canvas: Canvas, participantProgress: ArrayList<Int>, controlPoints: ArrayList<CGPoint>, userImg: String) {
         milestoneCoordinates.clear()
         participantProgress.forEach {
             val t = stepsCoveredToT(stepsCovered = it, totalSteps = totalStepsGoal)
             val point = pointsOnStraightLines(controlPoints = controlPoints, t = t.toFloat())
             milestoneCoordinates.add(point)
-            addMilestoneOnMap(canvas = canvas, userPosition = point, userImage = userImg)
+            addUserOnMap(canvas = canvas, userPosition = point, userImage = userImg)
         }
     }
 
