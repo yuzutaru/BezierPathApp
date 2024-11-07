@@ -21,11 +21,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.GestureDetectorCompat
 
 
-@SuppressLint("ViewConstructor")
-class VirtualRouteView(
-    context: Context, attrs: AttributeSet,
-    private val roadColor: Int = Color.GRAY, private val roadBorderColor: Int = Color.BLACK
-): View(context, attrs) {
+class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, attrs) {
 
     private var border: Paint = Paint()
     private var road: Paint = Paint()
@@ -75,8 +71,9 @@ class VirtualRouteView(
     )
 
     private var milestonePoints = arrayListOf(2500, 5000, 7500)
-    private var participantProgress = arrayListOf(0, 1000, 5000, 9000, 10000)
+    private var participantProgress = arrayListOf(0, 1000, 5000, 10000)
     private var userCoordinates = arrayListOf<CGPoint>()
+    private var milestoneCoordinates = arrayListOf<CGPoint>()
     private var totalStepsGoal = 10000
 
     private val frameDrawable: Drawable = ContextCompat.getDrawable(context, R.drawable.ic_virtual_route_vertical_bg)!!
@@ -118,17 +115,17 @@ class VirtualRouteView(
         /**
          * Border
          */
-        initBorder()
+        initBorder(Color.RED)
 
         /**
          * Road
          */
-        initRoad()
+        initRoad(Color.BLUE)
 
         /**
          * White Line
          */
-        initRoadLine()
+        initRoadLine(Color.GRAY)
 
         initialSetup(verticalControlPoint)
 
@@ -156,42 +153,38 @@ class VirtualRouteView(
         /**
          * Add user Position
          */
-        addUserPositions(
-            canvas = canvas, participantProgress = participantProgress,
-            controlPoints = points, userImage = R.drawable.ic_virtual_route_pin.toString()
-        )
+        addUserPositions(canvas = canvas, participantProgress = participantProgress,
+            controlPoints = points, userImg = R.drawable.ic_virtual_route_pin.toString())
 
         /**
          * Add Milestone Position
          */
-        addUserPositions(
-            canvas = canvas, participantProgress = milestonePoints,
-            controlPoints = points, userImage = R.drawable.ic_virtual_route_pin.toString()
-        )
+        addMilestonePositions(canvas = canvas, participantProgress = milestonePoints,
+            controlPoints = points, userImg = R.drawable.mock_ic_rewardz_user_pin.toString())
 
         /*Log.e("devLog", "canvas.width = ${canvas.width}")
         Log.e("devLog", "canvas.height = ${canvas.height}")*/
     }
 
-    private fun initBorder() {
+    private fun initBorder(color: Int) {
         border.style = Paint.Style.STROKE
-        border.color = roadBorderColor
+        border.color = color
         border.strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 44f,
             context.resources.displayMetrics)
         border.strokeCap = Paint.Cap.ROUND
         border.isAntiAlias = true
     }
 
-    private fun initRoad() {
+    private fun initRoad(color: Int) {
         road.style = Paint.Style.STROKE
-        road.color = roadColor
+        road.color = Color.BLUE
         road.strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 40f,
             context.resources.displayMetrics)
         road.strokeCap = Paint.Cap.ROUND
         road.isAntiAlias = true
     }
 
-    private fun initRoadLine() {
+    private fun initRoadLine(color: Int) {
         roadLine.style = Paint.Style.STROKE
         roadLine.setPathEffect(
             DashPathEffect(
@@ -205,7 +198,7 @@ class VirtualRouteView(
                     context.resources.displayMetrics)
             )
         )
-        roadLine.color = Color.GRAY
+        roadLine.color = color
         roadLine.strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4f,
             context.resources.displayMetrics)
         roadLine.strokeCap = Paint.Cap.ROUND
@@ -288,16 +281,59 @@ class VirtualRouteView(
         }
     }
 
-    private fun addUserPositions(
-        canvas: Canvas, participantProgress: ArrayList<Int>, controlPoints: ArrayList<CGPoint>,
-        userImage: String
-    ) {
+    private fun addUserOnMap(canvas: Canvas, userPosition: CGPoint, userImage: String) {
+        val x = userPosition.x.toFloat()
+        val y = userPosition.y.toFloat()
+
+        val drawableImg = ContextCompat.getDrawable(context, userImage.toInt())
+
+        drawableImg?.let {
+            //it.setBounds(x.toInt(), y.toInt(), (it.intrinsicWidth + x).toInt(), (it.intrinsicHeight + y).toInt())
+            it.setBounds(
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (x - 20f), context.resources.displayMetrics).toInt(),
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (y - 40f), context.resources.displayMetrics).toInt(),
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (x + 20f), context.resources.displayMetrics).toInt(),
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (y), context.resources.displayMetrics).toInt()
+            )
+            it.draw(canvas)
+        }
+    }
+
+    private fun addMilestoneOnMap(canvas: Canvas, userPosition: CGPoint, userImage: String) {
+        val x = userPosition.x.toFloat()
+        val y = userPosition.y.toFloat()
+
+        val drawableImg = ContextCompat.getDrawable(context, userImage.toInt())
+
+        drawableImg?.let {
+            //it.setBounds(x.toInt(), y.toInt(), (it.intrinsicWidth + x).toInt(), (it.intrinsicHeight + y).toInt())
+            it.setBounds(
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (x - 20f), context.resources.displayMetrics).toInt(),
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (y - 15f), context.resources.displayMetrics).toInt(),
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (x + 10f), context.resources.displayMetrics).toInt(),
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (y + 15), context.resources.displayMetrics).toInt()
+            )
+            it.draw(canvas)
+        }
+    }
+
+    private fun addUserPositions(canvas: Canvas, participantProgress: ArrayList<Int>, controlPoints: ArrayList<CGPoint>, userImg: String) {
         userCoordinates.clear()
         participantProgress.forEach {
             val t = stepsCoveredToT(stepsCovered = it, totalSteps = totalStepsGoal)
             val point = pointsOnStraightLines(controlPoints = controlPoints, t = t.toFloat())
             userCoordinates.add(point)
-            addUserOnMap(canvas = canvas, userPosition = point, userImage = userImage)
+            addUserOnMap(canvas = canvas, userPosition = point, userImage = userImg)
+        }
+    }
+
+    private fun addMilestonePositions(canvas: Canvas, participantProgress: ArrayList<Int>, controlPoints: ArrayList<CGPoint>, userImg: String) {
+        milestoneCoordinates.clear()
+        participantProgress.forEach {
+            val t = stepsCoveredToT(stepsCovered = it, totalSteps = totalStepsGoal)
+            val point = pointsOnStraightLines(controlPoints = controlPoints, t = t.toFloat())
+            milestoneCoordinates.add(point)
+            addMilestoneOnMap(canvas = canvas, userPosition = point, userImage = userImg)
         }
     }
 
@@ -344,24 +380,6 @@ class VirtualRouteView(
         val y = startPoint.y + (endPoint.y - startPoint.y) * t
 
         return CGPoint(x.toInt(), y.toInt())
-    }
-
-    private fun addUserOnMap(canvas: Canvas, userPosition: CGPoint, userImage: String) {
-        val x = userPosition.x.toFloat()
-        val y = userPosition.y.toFloat()
-
-        val drawableImg = ContextCompat.getDrawable(context, userImage.toInt())
-
-        drawableImg?.let {
-            //it.setBounds(x.toInt(), y.toInt(), (it.intrinsicWidth + x).toInt(), (it.intrinsicHeight + y).toInt())
-            it.setBounds(
-                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (x - 40f), context.resources.displayMetrics).toInt(),
-                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (y - 80f), context.resources.displayMetrics).toInt(),
-                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (x + 40f), context.resources.displayMetrics).toInt(),
-                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (y), context.resources.displayMetrics).toInt()
-            )
-            it.draw(canvas)
-        }
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
