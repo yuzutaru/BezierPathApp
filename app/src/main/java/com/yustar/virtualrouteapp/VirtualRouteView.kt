@@ -30,6 +30,14 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
         isAntiAlias = true
     }
 
+    private val userNamePaint = Paint().apply {
+        color = ContextCompat.getColor(context, R.color.white_71)
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 12f, context.resources.displayMetrics)  // Set your desired text size
+
+        isAntiAlias = true
+        textAlign = Paint.Align.CENTER
+    }
+
     private var selectedOption = ScrollDirection.vertical
 
     private var horizontalControlPoint = arrayListOf(
@@ -318,46 +326,61 @@ class VirtualRouteView(context: Context, attrs: AttributeSet): View(context, att
             )
             it.draw(canvas)
 
-            // Define the triangle points
-            val width = width.toFloat()
-            val height = height.toFloat()
-
-            // Calculate the three points of the triangle with the tip at the bottom
-            val point1 = Pair(width * 0.25f, height * 0.25f)   // Top-left point
-            val point2 = Pair(width * 0.75f, height * 0.25f)   // Top-right point
-            val point3 = Pair(width / 2, height * 0.75f)       // Bottom tip point (centered horizontally)
-
             // Create a Path for the triangle
-            val path = Path().apply {
-                moveTo(
-                    TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (x - 15f), context.resources.displayMetrics),
-                    TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (y - 30f), context.resources.displayMetrics)
-                )  // Move to the top-left point
-                lineTo(
-                    TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, x + 5f, context.resources.displayMetrics),
-                    TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, y - 30f, context.resources.displayMetrics)
-                )  // Draw line to the top-right
-                lineTo(
-                    TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, x - 5, context.resources.displayMetrics),
-                    TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, y - 20f, context.resources.displayMetrics)
-                )  // Draw line to the bottom tip
-                close()  // Close the path to form the triangle
-            }
-
-            // Draw the triangle
-            canvas.drawPath(path, rectPaint)
+            setTriangle(canvas)
 
             // Define the rectangle dimensions
-            val cornerRadius = 6f
+            setRoundedRect(canvas)
 
-            canvas.drawRoundRect(
-                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (x - 50f), context.resources.displayMetrics),
-                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (y - 70f), context.resources.displayMetrics),
-                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (x + 40f), context.resources.displayMetrics),
-                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (y - 30f), context.resources.displayMetrics),
-                cornerRadius, cornerRadius, rectPaint
-            )
+            // Calculate the position for the text to be centered in the rectangle
+            setUserName(canvas)
         }
+    }
+
+    private fun setTriangle(canvas: Canvas) {
+        val path = Path().apply {
+            moveTo(
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (x - 15f), context.resources.displayMetrics),
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (y - 30f), context.resources.displayMetrics)
+            )  // Move to the top-left point
+            lineTo(
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, x + 5f, context.resources.displayMetrics),
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, y - 30f, context.resources.displayMetrics)
+            )  // Draw line to the top-right
+            lineTo(
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, x - 5, context.resources.displayMetrics),
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, y - 20f, context.resources.displayMetrics)
+            )  // Draw line to the bottom tip
+            close()  // Close the path to form the triangle
+        }
+
+        // Draw the triangle
+        canvas.drawPath(path, rectPaint)
+    }
+
+    private fun setRoundedRect(canvas: Canvas) {
+        val cornerRadius = 6f
+
+        canvas.drawRoundRect(
+            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (x - 50f), context.resources.displayMetrics),
+            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (y - 70f), context.resources.displayMetrics),
+            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (x + 40f), context.resources.displayMetrics),
+            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (y - 30f), context.resources.displayMetrics),
+            cornerRadius, cornerRadius, rectPaint
+        )
+    }
+
+    private fun setUserName(canvas: Canvas) {
+        var text = "Rewardz"
+        val maxLength = 14
+        val textX = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, x - 4, context.resources.displayMetrics)  // Center horizontally
+        val textY = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, y - 54f, context.resources.displayMetrics)  // Center vertically
+
+        if (text.length > maxLength)
+            text = text.substring(0, maxLength - 3) + "..."; // Add ellipsis
+
+        // Draw the text inside the rectangle
+        canvas.drawText(text, textX, textY, userNamePaint)
     }
 
     private fun addMilestonePositions(canvas: Canvas, participantProgress: ArrayList<Int>, controlPoints: ArrayList<CGPoint>, userImg: String) {
